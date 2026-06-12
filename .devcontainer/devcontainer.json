@@ -1,0 +1,32 @@
+{
+  "name": "Haskell Dev Container",
+  "image": "ghcr.io/lcamel/haskell-devcontainer:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "haskell.haskell"
+      ],
+      "settings": {
+        // "haskell.manageHLS" should be set to "PATH".
+        // The following configuration is a workaround for the issue:
+        // https://github.com/haskell/vscode-haskell/issues/1332
+        "haskell.manageHLS": "GHCup",
+        "haskell.toolchain": {
+          "ghc": null,
+          "hls": null,
+          "stack": null,
+          "cabal": null
+        },
+        // Disable automatic GHCup upgrade.
+        "haskell.upgradeGHCup": false,
+
+        // Disable minimap to save screen space.
+        "editor.minimap.enabled": false
+      }
+    }
+  },
+  // Some Haskell code requires locale settings to process non-ASCII characters.
+  "containerEnv": {
+    "LC_ALL": "en_US.UTF-8"
+  }
+}
