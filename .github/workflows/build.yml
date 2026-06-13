@@ -1,0 +1,80 @@
+name: Build binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+# Needed so the tag build can create / update a GitHub Release.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x86_64
+          - os: macos-14         # Apple Silicon (arm64)
+            target: macos-arm64
+          - os: windows-latest
+            target: windows-x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Stack
+        id: setup
+        uses: haskell-actions/setup@v2
+        with:
+          enable-stack: true
+          stack-version: latest
+          stack-setup-ghc: true   # let stack install the GHC pinned by the resolver
+
+      - name: Cache Stack
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ steps.setup.outputs.stack-root }}
+            .stack-work
+          key: ${{ runner.os }}-stack-${{ hashFiles('stack.yaml.lock', 'package.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-stack-
+
+      - name: Build
+        run: stack build --copy-bins --local-bin-path dist
+
+      - name: Package
+        id: package
+        shell: bash
+        run: |
+          BIN=haskell-native-exe
+          NAME=haskell-native-${{ matrix.target }}
+          mkdir -p out
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "dist/${BIN}.exe" "${NAME}.exe"
+            7z a "out/${NAME}.zip" "${NAME}.exe"
+            echo "asset=out/${NAME}.zip" >> "$GITHUB_OUTPUT"
+          else
+            cp "dist/${BIN}" "${NAME}"
+            chmod +x "${NAME}"
+            tar -czf "out/${NAME}.tar.gz" "${NAME}"
+            echo "asset=out/${NAME}.tar.gz" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: haskell-native-${{ matrix.target }}
+          path: ${{ steps.package.outputs.asset }}
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.asset }}
