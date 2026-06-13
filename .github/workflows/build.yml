@@ -26,7 +26,7 @@ jobs:
             target: windows-x86_64
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Stack
         id: setup
@@ -37,7 +37,7 @@ jobs:
           stack-setup-ghc: true   # let stack install the GHC pinned by the resolver
 
       - name: Cache Stack
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ steps.setup.outputs.stack-root }}
@@ -68,7 +68,7 @@ jobs:
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: haskell-native-${{ matrix.target }}
           path: ${{ steps.package.outputs.asset }}
