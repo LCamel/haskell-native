@@ -1,6 +1,6 @@
 {
   "name": "Haskell Dev Container",
-  "image": "ghcr.io/lcamel/haskell-devcontainer:latest",
+  "image": "ghcr.io/lcamel/haskell-devcontainer:9.8.4__lts-23.28__2.11.0.0__20260117-1310",
   "customizations": {
     "vscode": {
       "extensions": [
